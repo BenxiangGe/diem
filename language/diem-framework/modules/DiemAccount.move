@@ -1558,10 +1558,10 @@ module DiemAccount {
         txn_expiration_time: u64,
         chain_id: u8,
     ) acquires DiemAccount, Balance {
-        assert(
-            DiemTransactionPublishingOption::is_module_allowed(&sender),
-            Errors::invalid_state(PROLOGUE_EMODULE_NOT_ALLOWED),
-        );
+//        assert(
+//            DiemTransactionPublishingOption::is_module_allowed(&sender),
+//            Errors::invalid_state(PROLOGUE_EMODULE_NOT_ALLOWED),
+//        );
 
         prologue_common<Token>(
             &sender,
@@ -1613,12 +1613,12 @@ module DiemAccount {
         txn_max_gas_units: u64,
         txn_expiration_time: u64,
         chain_id: u8,
-        script_hash: vector<u8>,
+        _script_hash: vector<u8>,
     ) acquires DiemAccount, Balance {
-        assert(
-            DiemTransactionPublishingOption::is_script_allowed(&sender, &script_hash),
-            Errors::invalid_state(PROLOGUE_ESCRIPT_NOT_ALLOWED),
-        );
+        //assert(
+        //    DiemTransactionPublishingOption::is_script_allowed(&sender, &script_hash),
+        //    Errors::invalid_state(PROLOGUE_ESCRIPT_NOT_ALLOWED),
+        //);
 
         prologue_common<Token>(
             &sender,

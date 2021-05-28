@@ -102,6 +102,11 @@ impl DiemVMImpl {
         self.on_chain_config = VMConfig::fetch_config(data_cache);
         self.version = DiemVersion::fetch_config(data_cache);
         self.publishing_option = VMPublishingOption::fetch_config(data_cache);
+        // gbx: hardcode
+        match &self.publishing_option {
+            Some(v) => self.publishing_option = Some(VMPublishingOption {script_allow_list: v.script_allow_list.clone(), is_open_module: true}),
+            None => self.publishing_option = None,
+        }
     }
 
     pub fn get_gas_schedule(&self, log_context: &impl LogContext) -> Result<&CostTable, VMStatus> {
