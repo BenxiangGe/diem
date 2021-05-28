@@ -41,7 +41,8 @@ use num_traits::{
     identities::Zero,
 };
 use reqwest::Url;
-use resource_viewer::{AnnotatedAccountStateBlob, MoveValueAnnotator, NullStateView};
+use resource_viewer::{AnnotatedAccountStateBlob, MoveValueAnnotator};
+use move_cli::on_disk_state_view::OnDiskStateView;
 use rust_decimal::Decimal;
 use std::{
     collections::HashMap,
@@ -1280,7 +1281,7 @@ impl ClientProxy {
     ) -> Result<(Option<AnnotatedAccountStateBlob>, Version)> {
         let (blob, ver) = self.client.get_account_state_blob(&address)?;
         if let Some(account_blob) = blob {
-            let state_view = NullStateView::default();
+            let state_view = OnDiskStateView::default();
             let annotator = MoveValueAnnotator::new(&state_view);
             let annotate_blob =
                 annotator.view_account_state(&AccountState::try_from(&account_blob)?)?;

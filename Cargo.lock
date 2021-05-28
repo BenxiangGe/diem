@@ -893,6 +893,7 @@ dependencies = [
  "diem-workspace-hack",
  "generate-key",
  "hex",
+ "move-cli",
  "num-traits",
  "once_cell",
  "proptest",
