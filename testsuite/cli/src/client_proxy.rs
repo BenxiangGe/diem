@@ -6,13 +6,12 @@ use crate::{
     diem_client::DiemClient,
     AccountData, AccountStatus,
 };
+use move_cli::on_disk_state_view::OnDiskStateView;
+use resource_viewer::{NullStateView};
 use anyhow::{bail, ensure, format_err, Error, Result};
 use compiler::Compiler;
 use diem_client::{views, WaitForTransactionError};
-use diem_crypto::{
-    ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature},
-    test_utils::KeyPair,
-};
+use diem_crypto::{ed25519::{Ed25519PrivateKey, Ed25519PublicKey, Ed25519Signature}, test_utils::KeyPair, PrivateKey};
 use diem_logger::prelude::{error, info};
 use diem_temppath::TempPath;
 use diem_transaction_builder::stdlib as transaction_builder;
@@ -41,7 +40,8 @@ use num_traits::{
     identities::Zero,
 };
 use reqwest::Url;
-use resource_viewer::{AnnotatedAccountStateBlob, MoveValueAnnotator, NullStateView};
+// use resource_viewer::{AnnotatedAccountStateBlob, MoveValueAnnotator, NullStateView};
+use resource_viewer::{AnnotatedAccountStateBlob, MoveValueAnnotator};
 use rust_decimal::Decimal;
 use std::{
     collections::HashMap,
@@ -967,7 +967,9 @@ impl ClientProxy {
     ) -> Result<()> {
         let (sender_address, _) =
             self.get_account_address_from_parameter(space_delim_strings[1])?;
+        println!("gbx. file: {}, line:{}. sender_address: {:?}", file!(), line!(), sender_address);
         let sender = self.get_account_data(&sender_address)?;
+        println!("gbx. file: {}, line:{}. sender: {:?}", file!(), line!(), sender);
         let txn = self.create_txn_to_submit(program, &sender, None, None, None)?;
 
         self.submit_and_wait(&txn, true)?;
@@ -981,6 +983,7 @@ impl ClientProxy {
             "inconsistent command '{}' for publish_module",
             space_delim_strings[0]
         );
+        println!("gbx. file: {}, line:{}. mv path: {:?}", file!(), line!(), space_delim_strings[2]);
         let module_bytes = fs::read(space_delim_strings[2])?;
         self.submit_program(
             space_delim_strings,
@@ -1000,6 +1003,7 @@ impl ClientProxy {
             .iter()
             .filter_map(|arg| parse_transaction_argument_for_client(arg).ok())
             .collect();
+        println!("gbx. file: {}, line:{}. arguments: {:?}", file!(), line!(), arguments);
         // TODO: support type arguments in the client.
         self.submit_program(
             space_delim_strings,
@@ -1279,11 +1283,16 @@ impl ClientProxy {
         address: AccountAddress,
     ) -> Result<(Option<AnnotatedAccountStateBlob>, Version)> {
         let (blob, ver) = self.client.get_account_state_blob(&address)?;
+
+        println!("gbx. file: {}, line:{}. blob: {:?}, ver: {:?}", file!(), line!(), blob, ver);
         if let Some(account_blob) = blob {
-            let state_view = NullStateView::default();
+            // let state_view = NullStateView::default();
+            let state_view =  OnDiskStateView::create("/home/john/tmp/diem-stuff", "/home/john/tmp/diem-stuff")?;
             let annotator = MoveValueAnnotator::new(&state_view);
+            println!("gbx. file: {}, line:{}.", file!(), line!());
             let annotate_blob =
                 annotator.view_account_state(&AccountState::try_from(&account_blob)?)?;
+            println!("gbx. file: {}, line:{}. annotate_blob: {:?}, ver: {:?}", file!(), line!(), annotate_blob, ver);
             Ok((Some(annotate_blob), ver))
         } else {
             Ok((None, ver))
@@ -1612,8 +1621,16 @@ impl ClientProxy {
         gas_currency_code: Option<String>,
     ) -> Result<SignedTransaction> {
         let signer: Box<&dyn TransactionSigner> = match &sender_account.key_pair {
-            Some(key_pair) => Box::new(key_pair),
-            None => Box::new(&self.wallet),
+            Some(key_pair) =>
+                {
+                    println!("gbx. file: {}, line:{}. key_pair: {:?}", file!(), line!(), key_pair);
+                    Box::new(key_pair)
+                },
+            None => {
+                println!("gbx. file: {}, line:{}. public_key: {:?}", file!(), line!(), self.wallet.get_private_key(&sender_account.address)?.public_key());
+                println!("gbx. file: {}, line:{}. private_key: {:?}", file!(), line!(), self.wallet.get_private_key(&sender_account.address)?.to_bytes());
+                Box::new(&self.wallet)
+            },
         };
         create_user_txn(
             *signer,

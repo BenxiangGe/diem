@@ -276,6 +276,7 @@ impl BlockStore {
         // Here we commit up to the highest_commit_cert to maintain highest_commit_cert == state_computer.committed_trees.
         if self.highest_commit_cert().commit_info().round() > self.root().round() {
             let finality_proof = self.highest_commit_cert().ledger_info().clone();
+            println!("gbx. file: {}, line:{}", file!(), line!());
             if let Err(e) = self.commit(finality_proof).await {
                 error!(error = ?e, "Commit error during rebuild");
             }

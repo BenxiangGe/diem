@@ -71,6 +71,8 @@ impl DiemVMImpl {
         publishing_option: VMPublishingOption,
     ) -> Self {
         let inner = MoveVM::new();
+        println!("gbx. file: {}, line:{}. on_chain_config: {:?}", file!(), line!(), on_chain_config);
+        println!("gbx. file: {}, line:{}. publishing_option: {:?}", file!(), line!(), publishing_option);
         Self {
             move_vm: Arc::new(inner),
             on_chain_config: Some(on_chain_config),
@@ -88,7 +90,9 @@ impl DiemVMImpl {
         &self,
         log_context: &impl LogContext,
     ) -> Result<&VMPublishingOption, VMStatus> {
+        println!("gbx. file: {}, line:{}. publishing_option: {:?}", file!(), line!(), self.publishing_option);
         self.publishing_option.as_ref().ok_or_else(|| {
+            println!("gbx. file: {}, line:{}. publishing_option(). VM Startup Failed. PublishingOption Not Found", file!(), line!());
             log_context.alert();
             error!(
                 *log_context,
@@ -102,6 +106,11 @@ impl DiemVMImpl {
         self.on_chain_config = VMConfig::fetch_config(data_cache);
         self.version = DiemVersion::fetch_config(data_cache);
         self.publishing_option = VMPublishingOption::fetch_config(data_cache);
+        // gbx: hardcode
+        match &self.publishing_option {
+            Some(v) => self.publishing_option = Some(VMPublishingOption {script_allow_list: v.script_allow_list.clone(), is_open_module: true}),
+            None => self.publishing_option = None,
+        }
     }
 
     pub fn get_gas_schedule(&self, log_context: &impl LogContext) -> Result<&CostTable, VMStatus> {

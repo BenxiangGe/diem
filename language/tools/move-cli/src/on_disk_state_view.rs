@@ -4,7 +4,8 @@
 use crate::{BCS_EXTENSION, DEFAULT_BUILD_DIR, DEFAULT_STORAGE_DIR};
 use disassembler::disassembler::Disassembler;
 // TODO: do we want to make these Move core types or allow this to be customizable?
-use diem_types::{contract_event::ContractEvent, event::EventKey};
+use diem_state_view::StateView;
+use diem_types::{access_path::AccessPath, contract_event::ContractEvent, event::EventKey};
 use move_binary_format::{
     access::ModuleAccess,
     errors::*,
@@ -37,7 +38,7 @@ pub const MODULES_DIR: &str = "modules";
 /// subdirectory of `DEFAULT_STORAGE_DIR`/<addr> where events are stored
 pub const EVENTS_DIR: &str = "events";
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct OnDiskStateView {
     build_dir: PathBuf,
     storage_dir: PathBuf,
@@ -122,9 +123,13 @@ impl OnDiskStateView {
     }
 
     fn get_module_path(&self, module_id: &ModuleId) -> PathBuf {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let mut path = self.get_addr_path(module_id.address());
+        println!("gbx. file: {}, line:{}. path: {:?}", file!(), line!(), path);
         path.push(MODULES_DIR);
+        println!("gbx. file: {}, line:{}. path: {:?}", file!(), line!(), path);
         path.push(module_id.name().to_string());
+        println!("gbx. file: {}, line:{}. path: {:?}", file!(), line!(), path);
         path.with_extension(MOVE_COMPILED_EXTENSION)
     }
 
@@ -139,6 +144,7 @@ impl OnDiskStateView {
 
     /// Read the resource bytes stored on-disk at `addr`/`tag`
     fn get_module_bytes(&self, module_id: &ModuleId) -> Result<Option<Vec<u8>>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         Self::get_bytes(&self.get_module_path(module_id))
     }
 
@@ -168,6 +174,7 @@ impl OnDiskStateView {
     }
 
     fn get_bytes(path: &Path) -> Result<Option<Vec<u8>>> {
+        println!("gbx. file: {}, line:{}. path: {:?}", file!(), line!(), path);
         Ok(if path.exists() {
             Some(fs::read(path)?)
         } else {
@@ -412,8 +419,19 @@ impl OnDiskStateView {
     }
 }
 
+impl StateView for OnDiskStateView {
+    fn get(&self, _access_path: &AccessPath) -> Result<Option<Vec<u8>>> {
+        Err(anyhow!("No data"))
+    }
+
+    fn is_genesis(&self) -> bool {
+        false
+    }
+}
+
 impl MoveStorage for OnDiskStateView {
     fn get_module(&self, module_id: &ModuleId) -> VMResult<Option<Vec<u8>>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         self.get_module_bytes(module_id)
             .map_err(|_| PartialVMError::new(StatusCode::STORAGE_ERROR).finish(Location::Undefined))
     }
@@ -428,12 +446,12 @@ impl MoveStorage for OnDiskStateView {
     }
 }
 
-impl Default for OnDiskStateView {
-    fn default() -> Self {
-        OnDiskStateView::create(Path::new(DEFAULT_BUILD_DIR), Path::new(DEFAULT_STORAGE_DIR))
-            .expect("Failure creating OnDiskStateView")
-    }
-}
+// impl Default for OnDiskStateView {
+//     fn default() -> Self {
+//         OnDiskStateView::create(Path::new(DEFAULT_BUILD_DIR), Path::new(DEFAULT_STORAGE_DIR))
+//             .expect("Failure creating OnDiskStateView")
+//     }
+// }
 
 /// Holds a closure of modules and provides operations against the closure (e.g., finding all
 /// dependencies of a module).
@@ -492,6 +510,7 @@ impl CodeCache {
     }
 
     pub fn get_module(&self, module_id: &ModuleId) -> Result<&CompiledModule> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         self.0
             .get(module_id)
             .ok_or_else(|| anyhow!("Cannot find module {}", module_id))

@@ -20,7 +20,7 @@ impl Default for LoggerConfig {
         LoggerConfig {
             chan_size: CHANNEL_SIZE,
             is_async: true,
-            level: Level::Info,
+            level: Level::Trace,
         }
     }
 }
