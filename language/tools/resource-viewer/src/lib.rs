@@ -134,6 +134,7 @@ impl<'a> MoveValueAnnotator<'a> {
     pub fn view_account_state(&self, state: &AccountState) -> Result<AnnotatedAccountStateBlob> {
         let mut output = BTreeMap::new();
         for (k, v) in state.iter() {
+            println!("gbx. file: {}, line:{}. view_account_state(). k: {:?}, v: {:?}", file!(), line!(), k, v);
             let tag = match AccessPath::new(AccountAddress::random(), k.to_vec()).get_struct_tag() {
                 Some(t) => t,
                 None => {
@@ -141,12 +142,16 @@ impl<'a> MoveValueAnnotator<'a> {
                     continue;
                 }
             };
+            println!("gbx. file: {}, line:{}. tag: {:?}", file!(), line!(), tag);
             let ty = self.cache.resolve_struct(&tag)?;
+            println!("gbx. file: {}, line:{}. ty: {:?}", file!(), line!(), ty);
             let struct_def = (&ty)
                 .try_into()
                 .map_err(|e: PartialVMError| e.finish(Location::Undefined).into_vm_status())?;
 
+            println!("gbx. file: {}, line:{}. view_account_state(). struct_def: {:?}", file!(), line!(), struct_def);
             let move_struct = MoveStruct::simple_deserialize(v.as_slice(), &struct_def)?;
+            println!("gbx. file: {}, line:{}. view_account_state(). move_struct: {:?}", file!(), line!(), move_struct);
             output.insert(
                 ty.struct_tag()
                     .map_err(|e| e.finish(Location::Undefined).into_vm_status())
@@ -317,6 +322,7 @@ impl StateView for NullStateView {
 
 impl MoveStorage for NullStateView {
     fn get_module(&self, _module_id: &ModuleId) -> VMResult<Option<Vec<u8>>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         Ok(None)
     }
 

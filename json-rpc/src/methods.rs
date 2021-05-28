@@ -141,21 +141,27 @@ impl<'a> Handler<'a> {
     }
 
     pub async fn handle(&self, method_request: MethodRequest) -> Result<Value, JsonRpcError> {
+        let mut q_ar = false;
         let response: Value = match method_request {
             MethodRequest::Submit(params) => self.submit(params).await?.into(),
             MethodRequest::GetMetadata(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_metadata(params).await?)?
             }
             MethodRequest::GetAccount(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_account(params).await?)?
             }
             MethodRequest::GetTransactions(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_transactions(params).await?)?
             }
             MethodRequest::GetAccountTransaction(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_account_transaction(params).await?)?
             }
             MethodRequest::GetAccountTransactions(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_account_transactions(params).await?)?
             }
             MethodRequest::GetEvents(params) => {
@@ -168,9 +174,12 @@ impl<'a> Handler<'a> {
                 serde_json::to_value(self.get_network_status(params).await?)?
             }
             MethodRequest::GetStateProof(params) => {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_state_proof(params).await?)?
             }
             MethodRequest::GetAccountStateWithProof(params) => {
+                q_ar = true;
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 serde_json::to_value(self.get_account_state_with_proof(params).await?)?
             }
             MethodRequest::GetTransactionsWithProofs(params) => {
@@ -180,6 +189,9 @@ impl<'a> Handler<'a> {
                 serde_json::to_value(self.get_events_with_proofs(params).await?)?
             }
         };
+        if q_ar {
+            println!("gbx. file: {}, line:{}. response: {:?}", file!(), line!(), response);
+        }
         Ok(response)
     }
 
@@ -354,6 +366,7 @@ impl<'a> Handler<'a> {
         let version = self.version_param(params.version, "version")?;
         let ledger_version = self.version_param(params.ledger_version, "ledger_version")?;
 
+        println!("gbx. file: {}, line:{}. version: {}, ledger_version: {}", file!(), line!(), version, ledger_version);
         data::get_account_state_with_proof(
             self.service.db.borrow(),
             ledger_version,

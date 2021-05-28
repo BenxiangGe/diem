@@ -109,6 +109,7 @@ impl<'block> StateView for StateViewCache<'block> {
 
 impl<'block> MoveStorage for StateViewCache<'block> {
     fn get_module(&self, module_id: &ModuleId) -> VMResult<Option<Vec<u8>>> {
+        //println!("gbx. file: {}, line:{}.", file!(), line!());
         RemoteStorage::new(self).get_module(module_id)
     }
 
@@ -123,6 +124,7 @@ impl<'block> MoveStorage for StateViewCache<'block> {
 
 impl<'block> ConfigStorage for StateViewCache<'block> {
     fn fetch_config(&self, access_path: AccessPath) -> Option<Vec<u8>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         self.get(&access_path).ok()?
     }
 }
@@ -144,6 +146,7 @@ impl<'a, S: StateView> RemoteStorage<'a, S> {
 
 impl<'a, S: StateView> MoveStorage for RemoteStorage<'a, S> {
     fn get_module(&self, module_id: &ModuleId) -> VMResult<Option<Vec<u8>>> {
+        //println!("gbx. file: {}, line:{}.", file!(), line!());
         // REVIEW: cache this?
         let ap = AccessPath::from(module_id);
         self.get(&ap).map_err(|e| e.finish(Location::Undefined))
@@ -161,6 +164,7 @@ impl<'a, S: StateView> MoveStorage for RemoteStorage<'a, S> {
 
 impl<'a, S: StateView> ConfigStorage for RemoteStorage<'a, S> {
     fn fetch_config(&self, access_path: AccessPath) -> Option<Vec<u8>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         self.get(&access_path).ok()?
     }
 }

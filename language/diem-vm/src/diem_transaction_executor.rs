@@ -187,6 +187,7 @@ impl DiemVM {
                     if diem_version >= DIEM_VERSION_3 {
                         senders.extend(txn_data.secondary_signers());
                     }
+                    println!("gbx. file: {}, line:{}. ty_args: {:?}, args: {:?}, senders: {:?}", file!(), line!(), script.ty_args(), script.args(), txn_data.sender());
                     match remapped_script {
                         // We are in this case before VERSION_2
                         // or if there is no remapping for the script

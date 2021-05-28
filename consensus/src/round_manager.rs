@@ -355,6 +355,7 @@ impl RoundManager {
                     );
                     VerifyError::from(e)
                 })?;
+            println!("gbx. file: {}, line:{}", file!(), line!());
             let result = self
                 .block_store
                 .add_certs(&sync_info, self.create_block_retriever(author))
@@ -681,6 +682,7 @@ impl RoundManager {
             qc.certified_block().timestamp_usecs(),
             BlockStage::QC_AGGREGATED,
         );
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let result = self
             .block_store
             .insert_quorum_cert(&qc, &mut self.create_block_retriever(preferred_peer))

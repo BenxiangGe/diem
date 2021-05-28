@@ -95,6 +95,7 @@ impl VMValidator for DiemVMValidator {
             Err(err) => (Some(err.status_code()), 0),
         };
 
+        println!("gbx. file: {}, line:{}. status: {:?}", file!(), line!(), status);
         // Increment the counter for transactions verified.
         let counter_label = match status {
             None => "success",
@@ -174,6 +175,7 @@ pub(crate) fn validate_signature_checked_transaction<S: MoveStorage>(
             vm.run_writeset_prologue(&mut session, &txn_data, log_context)
         }
     };
+    println!("gbx. file: {}, line:{}. prologue_status: {:?}", file!(), line!(), prologue_status);
 
     if let Err(err) = prologue_status {
         // Accept "future" sequence numbers during the validation phase so that multiple

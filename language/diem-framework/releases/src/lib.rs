@@ -38,11 +38,13 @@ pub fn load_modules_from_release(release_name: &str) -> Result<Vec<Vec<u8>>> {
 
     match RELEASES_DIR.get_dir(&modules_path) {
         Some(modules_dir) => {
+            println!("gbx. file: {}, line:{}. modules_dir: {:?}", file!(), line!(), modules_dir);
             let mut modules = modules_dir
                 .files()
                 .iter()
                 .flat_map(|file| match file.path().extension() {
                     Some(ext) if ext == "mv" => {
+                        println!("gbx. file: {}, line:{}. file: {:?}", file!(), line!(), file);
                         Some((file.path().file_name(), file.contents().to_vec()))
                     }
                     _ => None,
@@ -50,6 +52,7 @@ pub fn load_modules_from_release(release_name: &str) -> Result<Vec<Vec<u8>>> {
                 .collect::<Vec<_>>();
 
             modules.sort_by(|(name1, _), (name2, _)| name1.cmp(name2));
+            println!("gbx. file: {}, line:{}. modules: {:?}", file!(), line!(), modules);
 
             Ok(modules.into_iter().map(|(_name, blob)| blob).collect())
         }

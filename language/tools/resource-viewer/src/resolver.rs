@@ -27,12 +27,17 @@ pub(crate) struct Resolver<'a> {
     cache: ModuleCache,
 }
 
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
 impl<'a> Resolver<'a> {
     pub fn new(state: &'a dyn MoveStorage, use_stdlib: bool) -> Self {
         let cache = ModuleCache::new();
         if use_stdlib {
             let modules = diem_framework_releases::current_modules();
             for module in modules {
+                println!("gbx. file: {}, line:{}. module: {:?}", file!(), line!(), module);
                 cache.insert(module.self_id(), module.clone());
             }
         }
@@ -40,10 +45,13 @@ impl<'a> Resolver<'a> {
     }
 
     fn get_module(&self, address: &AccountAddress, name: &IdentStr) -> Result<Rc<CompiledModule>> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let module_id = ModuleId::new(*address, name.to_owned());
         if let Some(module) = self.cache.get(&module_id) {
             return Ok(module);
         }
+        print_type_of(&self.state);
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let blob = self
             .state
             .get_module(&module_id)
@@ -73,14 +81,19 @@ impl<'a> Resolver<'a> {
     }
 
     pub fn resolve_struct(&self, struct_tag: &StructTag) -> Result<FatStructType> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let module = self.get_module(&struct_tag.address, &struct_tag.module)?;
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let struct_def = find_struct_def_in_module(module.clone(), struct_tag.name.as_ident_str())?;
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let ty_args = struct_tag
             .type_params
             .iter()
             .map(|ty| self.resolve_type(ty))
             .collect::<Result<Vec<_>>>()?;
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let ty_body = self.resolve_struct_definition(module, struct_def)?;
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         ty_body.subst(&ty_args).map_err(|e: PartialVMError| {
             anyhow!("StructTag {:?} cannot be resolved: {:?}", struct_tag, e)
         })

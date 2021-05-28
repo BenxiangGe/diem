@@ -33,6 +33,7 @@ impl SerializerService {
     pub fn handle_message(&mut self, input_message: Vec<u8>) -> Result<Vec<u8>, Error> {
         let input = bcs::from_bytes(&input_message)?;
 
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let output = match input {
             ExecutionCorrectnessInput::CommittedBlockId => {
                 bcs::to_bytes(&self.internal.committed_block_id())
@@ -115,10 +116,12 @@ impl ExecutionCorrectness for SerializerClient {
         block_ids: Vec<HashValue>,
         ledger_info_with_sigs: LedgerInfoWithSignatures,
     ) -> Result<(Vec<Transaction>, Vec<ContractEvent>), Error> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let response = self.request(ExecutionCorrectnessInput::CommitBlocks(Box::new((
             block_ids,
             ledger_info_with_sigs,
         ))))?;
+        println!("gbx. file: {}, line:{}", file!(), line!());
         bcs::from_bytes(&response)?
     }
 }

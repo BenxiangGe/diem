@@ -73,6 +73,7 @@ impl ExecutionCorrectness for LocalClient {
         block_ids: Vec<HashValue>,
         ledger_info_with_sigs: LedgerInfoWithSignatures,
     ) -> Result<(Vec<Transaction>, Vec<ContractEvent>), Error> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.internal
             .lock()
             .block_executor

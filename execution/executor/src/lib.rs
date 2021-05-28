@@ -624,6 +624,7 @@ impl<V: VMExecutor> ChunkExecutor for Executor<V> {
         fail_point!("executor::commit_chunk", |_| {
             Err(anyhow::anyhow!("Injected error in commit_chunk"))
         });
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.db.writer.save_transactions(
             &txns_to_commit,
             first_version,
@@ -767,6 +768,7 @@ impl<V: VMExecutor> BlockExecutor for Executor<V> {
                 StateViewId::BlockExecution { block_id },
                 &parent_block_executed_trees,
             );
+            println!("gbx. file: {}, line:{}", file!(), line!());
 
             let vm_outputs = {
                 let _timer = DIEM_EXECUTOR_VM_EXECUTE_BLOCK_SECONDS.start_timer();
@@ -777,6 +779,7 @@ impl<V: VMExecutor> BlockExecutor for Executor<V> {
                 });
                 V::execute_block(transactions.clone(), &state_view).map_err(anyhow::Error::from)?
             };
+            println!("gbx. file: {}, line:{}. vm_outputs: {:?}", file!(), line!(), vm_outputs);
 
             let status: Vec<_> = vm_outputs
                 .iter()
@@ -788,6 +791,7 @@ impl<V: VMExecutor> BlockExecutor for Executor<V> {
             }
 
             let (account_to_state, account_to_proof) = state_view.into();
+            //println!("gbx. file: {}, line:{}. account_to_state: {:?}, account_to_proof: {:?}", file!(), line!(), account_to_state, account_to_proof);
             let output = Self::process_vm_outputs(
                 account_to_state,
                 account_to_proof,
@@ -797,12 +801,15 @@ impl<V: VMExecutor> BlockExecutor for Executor<V> {
             )
             .map_err(|err| format_err!("Failed to execute block: {}", err))?;
 
+            //println!("gbx. file: {}, line:{}. output: {:?}", file!(), line!(), output);
             let parent_accu = parent_block_executed_trees.txn_accumulator();
+            //println!("gbx. file: {}, line:{}. parent_block_executed_trees: {:?}", file!(), line!(), parent_block_executed_trees);
 
             let state_compute_result = output.compute_result(
                 parent_accu.frozen_subtree_roots().clone(),
                 parent_accu.num_leaves(),
             );
+            println!("gbx. file: {}, line:{}. state_compute_result: {:?}", file!(), line!(), state_compute_result);
             (output, state_compute_result)
         };
 
@@ -926,6 +933,7 @@ impl<V: VMExecutor> BlockExecutor for Executor<V> {
                     "Injected error in commit_blocks"
                 )))
             });
+            println!("gbx. file: {}, line:{}", file!(), line!());
             self.db.writer.save_transactions(
                 txns_to_commit,
                 first_version_to_commit,

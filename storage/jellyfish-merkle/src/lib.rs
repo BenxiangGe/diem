@@ -295,12 +295,14 @@ where
         tree_cache: &mut TreeCache<R, V>,
     ) -> Result<()> {
         let nibble_path = NibblePath::new(key.to_vec());
+        println!("gbx. file: {}, line:{}. nibble_path: {:?}", file!(), line!(), nibble_path);
 
         // Get the root node. If this is the first operation, it would get the root node from the
         // underlying db. Otherwise it most likely would come from `cache`.
         let root_node_key = tree_cache.get_root_node_key();
         let mut nibble_iter = nibble_path.nibbles();
 
+        println!("gbx. file: {}, line:{}. root_node_key: {:?}", file!(), line!(), root_node_key);
         // Start insertion from the root node.
         let (new_root_node_key, _) = Self::insert_at(
             root_node_key.clone(),
@@ -310,6 +312,7 @@ where
             tree_cache,
         )?;
 
+        println!("gbx. file: {}, line:{}. new_root_node_key: {:?}", file!(), line!(), new_root_node_key);
         tree_cache.set_root_node_key(new_root_node_key);
         Ok(())
     }
@@ -325,7 +328,9 @@ where
         value: V,
         tree_cache: &mut TreeCache<R, V>,
     ) -> Result<(NodeKey, Node<V>)> {
+        println!("gbx. file: {}, line:{}. version: {:?}, node_key: {:?}", file!(), line!(), version, node_key);
         let node = tree_cache.get_node(&node_key)?;
+        println!("gbx. file: {}, line:{}.", file!(), line!()); node.display();
         match node {
             Node::Internal(internal_node) => Self::insert_at_internal_node(
                 node_key,
@@ -375,6 +380,7 @@ where
         value: V,
         tree_cache: &mut TreeCache<R, V>,
     ) -> Result<(NodeKey, Node<V>)> {
+        println!("gbx. file: {}, line:{}. node_key: {:?}", file!(), line!(), node_key);
         // We always delete the existing internal node here because it will not be referenced anyway
         // since this version.
         tree_cache.delete_node(&node_key, false /* is_leaf */);
@@ -382,19 +388,25 @@ where
         // Find the next node to visit following the next nibble as index.
         let child_index = nibble_iter.next().expect("Ran out of nibbles");
 
+        println!("gbx. file: {}, line:{}. child_index: {:?}", file!(), line!(), child_index);
         // Traverse downwards from this internal node recursively to get the `node_key` of the child
         // node at `child_index`.
         let (_, new_child_node) = match internal_node.child(child_index) {
             Some(child) => {
+                println!("gbx. file: {}, line:{}. child: {:?}", file!(), line!(), child);
                 let child_node_key = node_key.gen_child_node_key(child.version, child_index);
+                println!("gbx. file: {}, line:{}. child_node_key: {:?}", file!(), line!(), child_node_key);
                 Self::insert_at(child_node_key, version, nibble_iter, value, tree_cache)?
             }
             None => {
                 let new_child_node_key = node_key.gen_child_node_key(version, child_index);
+                println!("gbx. file: {}, line:{}. new_child_node_key: {:?}", file!(), line!(), new_child_node_key);
                 Self::create_leaf_node(new_child_node_key, nibble_iter, value, tree_cache)?
             }
         };
 
+        new_child_node.display();
+        println!("gbx. file: {}, line:{}. internal_node: {:?}", file!(), line!(), internal_node);
         // Reuse the current `InternalNode` in memory to create a new internal node.
         let mut children: Children = internal_node.into();
         children.insert(
@@ -402,6 +414,7 @@ where
             Child::new(new_child_node.hash(), version, new_child_node.is_leaf()),
         );
         let new_internal_node = InternalNode::new(children);
+        println!("gbx. file: {}, line:{}. new_internal_node: {:?}", file!(), line!(), new_internal_node);
 
         node_key.set_version(version);
 
@@ -421,6 +434,7 @@ where
         value: V,
         tree_cache: &mut TreeCache<R, V>,
     ) -> Result<(NodeKey, Node<V>)> {
+        println!("gbx. file: {}, line:{}. node_key: {:?}", file!(), line!(), node_key);
         // We are on a leaf node but trying to insert another node, so we may diverge.
         // We always delete the existing leaf node here because it will not be referenced anyway
         // since this version.
@@ -432,8 +446,11 @@ where
         let mut visited_nibble_iter = nibble_iter.visited_nibbles();
         let existing_leaf_nibble_path = NibblePath::new(existing_leaf_node.account_key().to_vec());
         let mut existing_leaf_nibble_iter = existing_leaf_nibble_path.nibbles();
+        println!("gbx. file: {}, line:{}. before skip_common_prefix(). visited_nibble_iter: {:?}, existing_leaf_nibble_iter: {:?}", file!(), line!(), visited_nibble_iter, existing_leaf_nibble_iter);
         skip_common_prefix(&mut visited_nibble_iter, &mut existing_leaf_nibble_iter);
+        println!("gbx. file: {}, line:{}. after skip_common_prefix(). visited_nibble_iter: {:?}, existing_leaf_nibble_iter: {:?}", file!(), line!(), visited_nibble_iter, existing_leaf_nibble_iter);
 
+        println!("gbx. file: {}, line:{}. existing_leaf_nibble_path: {:?}", file!(), line!(), existing_leaf_nibble_path);
         // TODO(lightmark): Change this to corrupted error.
         assert!(
             visited_nibble_iter.is_finished(),
@@ -448,6 +465,7 @@ where
         let num_common_nibbles_below_internal =
             skip_common_prefix(nibble_iter, &mut existing_leaf_nibble_iter_below_internal);
         let mut common_nibble_path = nibble_iter.visited_nibbles().collect::<NibblePath>();
+        println!("gbx. file: {}, line:{}. common_nibble_path: {:?}", file!(), line!(), common_nibble_path);
 
         // 2.1. Both are finished. That means the incoming key already exists in the tree and we
         // just need to update its value.
@@ -459,6 +477,7 @@ where
             return Self::create_leaf_node(node_key, nibble_iter, value, tree_cache);
         }
 
+        println!("gbx. file: {}, line:{}. existing_leaf_nibble_iter_below_internal: {:?}, nibble_iter: {:?}", file!(), line!(), existing_leaf_nibble_iter_below_internal, nibble_iter);
         // 2.2. both are unfinished(They have keys with same length so it's impossible to have one
         // finished and the other not). This means the incoming key forks at some point between the
         // position where step 1 ends and the last nibble, inclusive. Then create a seris of
@@ -472,6 +491,7 @@ where
         let new_leaf_index = nibble_iter.next().expect("Ran out of nibbles");
         assert_ne!(existing_leaf_index, new_leaf_index);
 
+        println!("gbx. file: {}, line:{}. existing_leaf_index: {:?}, new_leaf_index: {:?}", file!(), line!(), existing_leaf_index, new_leaf_index);
         let mut children = Children::new();
         children.insert(
             existing_leaf_index,
@@ -483,25 +503,32 @@ where
             existing_leaf_node.into(),
         )?;
 
+        println!("gbx. file: {}, line:{}. node_key: {:?}", file!(), line!(), node_key);
         let (_, new_leaf_node) = Self::create_leaf_node(
             node_key.gen_child_node_key(version, new_leaf_index),
             nibble_iter,
             value,
             tree_cache,
         )?;
+        new_leaf_node.display();
         children.insert(
             new_leaf_index,
             Child::new(new_leaf_node.hash(), version, true /* is_leaf */),
         );
 
         let internal_node = InternalNode::new(children);
+        println!("gbx. file: {}, line:{}. internal_node: {:?}", file!(), line!(), internal_node);
+
         let mut next_internal_node = internal_node.clone();
         tree_cache.put_node(node_key.clone(), internal_node.into())?;
 
+        println!("gbx. file: {}, line:{}. num_common_nibbles_below_internal: {:?}", file!(), line!(), num_common_nibbles_below_internal);
         for _i in 0..num_common_nibbles_below_internal {
+            println!("gbx. file: {}, line:{}. before pop(). common_nibble_path: {:?}", file!(), line!(), common_nibble_path);
             let nibble = common_nibble_path
                 .pop()
                 .expect("Common nibble_path below internal node ran out of nibble");
+            println!("gbx. file: {}, line:{}. after pop(). common_nibble_path: {:?}", file!(), line!(), common_nibble_path);
             node_key = NodeKey::new(version, common_nibble_path.clone());
             let mut children = Children::new();
             children.insert(
@@ -531,6 +558,7 @@ where
             value,
         );
 
+        println!("gbx. file: {}, line:{}. node_key: {:?}", file!(), line!(), node_key); new_leaf_node.display();
         tree_cache.put_node(node_key.clone(), new_leaf_node.clone())?;
         Ok((node_key, new_leaf_node))
     }

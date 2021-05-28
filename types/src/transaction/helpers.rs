@@ -63,6 +63,7 @@ pub fn create_user_txn<T: TransactionSigner + ?Sized>(
 
 impl TransactionSigner for KeyPair<Ed25519PrivateKey, Ed25519PublicKey> {
     fn sign_txn(&self, raw_txn: RawTransaction) -> Result<SignedTransaction> {
+        println!("gbx. file: {}, line:{}. private_key: {:?}", file!(), line!(), self.private_key);
         let signature = self.private_key.sign(&raw_txn);
         Ok(SignedTransaction::new(
             raw_txn,

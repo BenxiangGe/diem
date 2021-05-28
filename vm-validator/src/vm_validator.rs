@@ -63,6 +63,7 @@ impl TransactionValidation for VMValidator {
         });
         use diem_vm::VMValidator;
 
+        println!("gbx. file: {}, line:{}. txn: {:?}", file!(), line!(), txn);
         let (version, state_root) = self.db_reader.get_latest_state_root()?;
         let db_reader = Arc::clone(&self.db_reader);
         let vm = self.vm.clone();

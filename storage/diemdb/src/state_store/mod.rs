@@ -75,13 +75,18 @@ impl StateStore {
             .map(|account_states| {
                 account_states
                     .into_iter()
-                    .map(|(addr, blob)| (addr.hash(), blob))
+                    .map(|(addr, blob)| {
+                             println!("gbx. file: {}, line:{}, addr: {:?}, addr.hash(): {:?}", file!(), line!(), addr, addr.hash());
+                        (addr.hash(), blob)})
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
 
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let (new_root_hash_vec, tree_update_batch) =
             JellyfishMerkleTree::new(self).put_value_sets(blob_sets, first_version)?;
+        println!("gbx. file: {}, line:{}. new_root_hash_vec: {:?}", file!(), line!(), new_root_hash_vec);
+        //println!("gbx. file: {}, line:{}. tree_update_batch: {:?}", file!(), line!(), tree_update_batch);
 
         let num_versions = new_root_hash_vec.len();
         assert_eq!(num_versions, tree_update_batch.node_stats.len());

@@ -286,6 +286,7 @@ pub fn get_account_state_with_proof(
             version, ledger_version
         )));
     }
+    println!("gbx. file: {}, line:{}.", file!(), line!());
     let account_state_with_proof =
         db.get_account_state_with_proof(account_address, version, ledger_version)?;
     Ok(AccountStateWithProofView::try_from(

@@ -214,6 +214,7 @@ impl BlockStore {
             .path_from_root(block_id_to_commit)
             .unwrap_or_else(Vec::new);
 
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.state_computer
             .commit(
                 blocks_to_commit.iter().map(|b| b.id()).collect(),
@@ -221,6 +222,7 @@ impl BlockStore {
             )
             .await
             .expect("Failed to persist commit");
+        println!("gbx. file: {}, line:{}", file!(), line!());
         update_counters_for_committed_blocks(&blocks_to_commit);
         let current_round = self.root().round();
         let committed_round = block_to_commit.round();
@@ -276,6 +278,7 @@ impl BlockStore {
         // Here we commit up to the highest_commit_cert to maintain highest_commit_cert == state_computer.committed_trees.
         if self.highest_commit_cert().commit_info().round() > self.root().round() {
             let finality_proof = self.highest_commit_cert().ledger_info().clone();
+            println!("gbx. file: {}, line:{}", file!(), line!());
             if let Err(e) = self.commit(finality_proof).await {
                 error!(error = ?e, "Commit error during rebuild");
             }

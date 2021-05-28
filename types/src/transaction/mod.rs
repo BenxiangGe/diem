@@ -748,6 +748,7 @@ impl TransactionStatus {
 
 impl From<VMStatus> for TransactionStatus {
     fn from(vm_status: VMStatus) -> Self {
+        println!("gbx. file: {}, line:{}. vm_status: {:?}", file!(), line!(), vm_status);
         match vm_status.keep_or_discard() {
             Ok(recorded) => TransactionStatus::Keep(recorded),
             Err(code) => TransactionStatus::Discard(code),

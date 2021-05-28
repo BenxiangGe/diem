@@ -633,6 +633,20 @@ where
         }
     }
 
+    pub fn display(&self) {
+        match self {
+            Node::Null => {
+                println!("gbx. file: {}, line:{}. node: Null", file!(), line!());
+            },
+            Node::Internal(internal_node) => {
+                println!("gbx. file: {}, line:{}. internal node: {:?}", file!(), line!(), internal_node);
+            },
+            Node::Leaf(leaf_node) => {
+                println!("gbx. file: {}, line:{}. leaf node. account_key: {:?}, value_hash: {:?}", file!(), line!(), leaf_node.account_key, leaf_node.value_hash);
+            },
+        }
+    }
+
     /// Recovers from serialized bytes in physical storage.
     pub fn decode(val: &[u8]) -> Result<Node<V>> {
         if val.is_empty() {

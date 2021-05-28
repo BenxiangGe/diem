@@ -69,12 +69,14 @@ impl StateComputer for ExecutionProxy {
         block_ids: Vec<HashValue>,
         finality_proof: LedgerInfoWithSignatures,
     ) -> Result<(), ExecutionError> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let (committed_txns, reconfig_events) = monitor!(
             "commit_block",
             self.execution_correctness_client
                 .lock()
                 .commit_blocks(block_ids, finality_proof)?
         );
+        println!("gbx. file: {}, line:{}", file!(), line!());
         if let Err(e) = monitor!(
             "notify_state_sync",
             self.synchronizer

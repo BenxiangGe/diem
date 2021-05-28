@@ -936,6 +936,7 @@ impl Loader {
     }
 
     fn get_module(&self, idx: &ModuleId) -> Arc<Module> {
+        // println!("gbx. file: {}, line:{}.", file!(), line!());
         Arc::clone(
             self.module_cache
                 .read()

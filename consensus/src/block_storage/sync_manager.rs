@@ -77,9 +77,11 @@ impl BlockStore {
         self.sync_to_highest_commit_cert(sync_info.highest_commit_cert().clone(), &mut retriever)
             .await?;
 
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.insert_quorum_cert(sync_info.highest_commit_cert(), &mut retriever)
             .await?;
 
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.insert_quorum_cert(sync_info.highest_quorum_cert(), &mut retriever)
             .await?;
 
@@ -101,7 +103,9 @@ impl BlockStore {
         }
         if self.root().round() < qc.commit_info().round() {
             let finality_proof = qc.ledger_info();
+            println!("gbx. file: {}, line:{}", file!(), line!());
             self.commit(finality_proof.clone()).await?;
+            println!("gbx. file: {}, line:{}", file!(), line!());
             if qc.ends_epoch() {
                 retriever
                     .network

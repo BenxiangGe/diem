@@ -180,12 +180,20 @@ where
     /// Gets a node with given node key. If it doesn't exist in node cache, read from `reader`.
     pub fn get_node(&self, node_key: &NodeKey) -> Result<Node<V>> {
         Ok(if let Some(node) = self.node_cache.get(node_key) {
+            println!("gbx. file: {}, line:{}. node_key: {:?}. got from node_cache.", file!(), line!(), node_key);
+            node.display();
             node.clone()
         } else if let Some(node) = self.frozen_cache.node_cache.get(node_key) {
+            println!("gbx. file: {}, line:{}. node_key: {:?}. got from frozen_cache.", file!(), line!(), node_key);
+            node.display();
             node.clone()
         } else {
+            println!("gbx. file: {}, line:{}. node_key: {:?}. getting from reader...", file!(), line!(), node_key);
             DIEM_JELLYFISH_STORAGE_READS.inc();
-            self.reader.get_node(node_key)?
+            // self.reader.get_node(node_key)?
+            let node = self.reader.get_node(node_key)?;
+            node.display();
+            node
         })
     }
 

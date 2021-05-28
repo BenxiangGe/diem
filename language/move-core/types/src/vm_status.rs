@@ -164,6 +164,7 @@ impl VMStatus {
                 code_offset,
             }),
             VMStatus::Error(code) => {
+                println!("gbx. file: {}, line:{}. code.status_type: {:?}", file!(), line!(), code.status_type());
                 match code.status_type() {
                     // Any unknown error should be discarded
                     StatusType::Unknown => Err(code),

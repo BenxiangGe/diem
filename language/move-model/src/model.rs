@@ -1197,6 +1197,7 @@ impl GlobalEnv {
 
     /// Gets a module by id.
     pub fn get_module(&self, id: ModuleId) -> ModuleEnv<'_> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let module_data = &self.module_data[id.0 as usize];
         ModuleEnv {
             env: self,

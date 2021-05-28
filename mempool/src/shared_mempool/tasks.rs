@@ -258,10 +258,12 @@ where
         .collect::<Vec<_>>();
     vm_validation_timer.stop_and_record();
 
+    println!("gbx. file: {}, line:{}. validation_results: {:?}", file!(), line!(), validation_results);
     {
         let mut mempool = smp.mempool.lock();
         for (idx, (transaction, sequence_number)) in transactions.into_iter().enumerate() {
             if let Ok(validation_result) = &validation_results[idx] {
+                println!("gbx. file: {}, line:{}. validation_result: {:?}", file!(), line!(), validation_result);
                 match validation_result.status() {
                     None => {
                         let gas_amount = transaction.max_gas_amount();
@@ -275,6 +277,7 @@ where
                             timeline_state,
                             governance_role,
                         );
+                        println!("gbx. file: {}, line:{}. mempool_status: {:?}", file!(), line!(), mempool_status);
                         statuses.push((transaction, (mempool_status, None)));
                     }
                     Some(validation_status) => {

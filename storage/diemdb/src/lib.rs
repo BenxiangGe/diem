@@ -538,9 +538,11 @@ impl DiemDB {
             .iter()
             .map(|txn_to_commit| txn_to_commit.account_states().clone())
             .collect::<Vec<_>>();
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let state_root_hashes =
             self.state_store
                 .put_account_state_sets(account_state_sets, first_version, &mut cs)?;
+        println!("gbx. file: {}, line:{}", file!(), line!());
 
         // Event updates. Gather event accumulator root hashes.
         let event_root_hashes = zip_eq(first_version..=last_version, txns_to_commit)
@@ -805,6 +807,7 @@ impl DbReader for DiemDB {
         version: Version,
         ledger_version: Version,
     ) -> Result<AccountStateWithProof> {
+println!("gbx. file: {}, line:{}, address: {:?}, version: {:?}, ledger_version: {:?}", file!(), line!(), address, version, ledger_version);
         gauged_api("get_account_state_with_proof", || {
             ensure!(
                 version <= ledger_version,
@@ -814,6 +817,7 @@ impl DbReader for DiemDB {
             );
             {
                 let latest_version = self.get_latest_version()?;
+                println!("gbx. file: {}, line:{}. latest_version: {}", file!(), line!(), latest_version);
                 ensure!(
                     ledger_version <= latest_version,
                     "ledger_version specified {} is greater than committed version {}.",
@@ -822,12 +826,17 @@ impl DbReader for DiemDB {
                 );
             }
 
+            println!("gbx. file: {}, line:{}, db: {:?}", file!(), line!(), self.db);
+            println!("gbx. file: {}, line:{}, ledger_store: {:?}", file!(), line!(), self.ledger_store);
+            println!("gbx. file: {}, line:{}, state_store: {:?}", file!(), line!(), self.state_store);
             let txn_info_with_proof = self
                 .ledger_store
                 .get_transaction_info_with_proof(version, ledger_version)?;
+            println!("gbx. file: {}, line:{}, txn_info_with_proof: {:?}", file!(), line!(), txn_info_with_proof);
             let (account_state_blob, sparse_merkle_proof) = self
                 .state_store
                 .get_account_state_with_proof_by_version(address, version)?;
+            println!("gbx. file: {}, line:{}, account_state_blob: {:?}", file!(), line!(), account_state_blob);
             Ok(AccountStateWithProof::new(
                 version,
                 account_state_blob,
@@ -934,6 +943,7 @@ impl DbWriter for DiemDB {
         first_version: Version,
         ledger_info_with_sigs: Option<&LedgerInfoWithSignatures>,
     ) -> Result<()> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         gauged_api("save_transactions", || {
             let num_txns = txns_to_commit.len() as u64;
             // ledger_info_with_sigs could be None if we are doing state synchronization. In this case

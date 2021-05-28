@@ -63,6 +63,7 @@ impl VMRuntime {
         _gas_status: &mut GasStatus,
         log_context: &impl LogContext,
     ) -> VMResult<()> {
+        println!("gbx. file: {}, line:{}. publish_module()", file!(), line!());
         // deserialize the module. Perform bounds check. After this indexes can be
         // used with the `[]` operator
         let compiled_module = match CompiledModule::deserialize(&module) {
@@ -73,6 +74,9 @@ impl VMRuntime {
             }
         };
 
+        println!("gbx. file: {}, line:{}. compiled_module: {:?}", file!(), line!(), compiled_module);
+        println!("gbx. file: {}, line:{}. &sender: {:?}, compiled_module.address: {:?}", file!(), line!(), &sender, compiled_module.address());
+        println!("gbx. file: {}, line:{}. sender: {:?}", file!(), line!(), sender);
         // Make sure the module's self address matches the transaction sender. The self address is
         // where the module will actually be published. If we did not check this, the sender could
         // publish a module under anyone's account.
@@ -121,7 +125,9 @@ impl VMRuntime {
         tys: &[Type],
         args: Vec<Vec<u8>>,
     ) -> PartialVMResult<Vec<Value>> {
+        // println!("gbx. file: {}, line:{}. tys: {:?}, args: {:?}", file!(), line!(), tys, args);
         if tys.len() != args.len() {
+            println!("gbx. file: {}, line:{}.", file!(), line!());
             return Err(
                 PartialVMError::new(StatusCode::NUMBER_OF_ARGUMENTS_MISMATCH).with_message(
                     format!(
@@ -197,16 +203,20 @@ impl VMRuntime {
             tys.len()
         }
 
+        println!("gbx. file: {}, line:{}. tys: {:?}, args: {:?}, senders: {:?}", file!(), line!(), tys, args, senders);
         // Build the arguments list and check the arguments are of restricted types.
         // Signers are built up from left-to-right. Either all signer arguments are used, or no
         // signer arguments can be be used by a script.
         let n_signer_params = number_of_signer_params(file_format_version, tys);
 
         let args = if n_signer_params == 0 {
+            println!("gbx. file: {}, line:{}.", file!(), line!());
             self.deserialize_args(file_format_version, &tys, args)?
         } else {
             let n_signers = senders.len();
+            println!("gbx. file: {}, line:{}. n_signers: {:?}, n_signer_params: {:?}", file!(), line!(), n_signers, n_signer_params);
             if n_signer_params != n_signers {
+                println!("gbx. file: {}, line:{}.", file!(), line!());
                 return Err(
                     PartialVMError::new(StatusCode::NUMBER_OF_SIGNER_ARGUMENTS_MISMATCH)
                         .with_message(format!(
@@ -221,6 +231,8 @@ impl VMRuntime {
                 Value::signer
             };
             let mut vals: Vec<Value> = senders.into_iter().map(make_signer).collect();
+            println!("gbx. file: {}, line:{}. n_signers: {:?}, n_signer_params: {:?}", file!(), line!(), n_signers, n_signer_params);
+            println!("gbx. file: {}, line:{}. &tys[n_signers..]: {:?}, args: {:?}", file!(), line!(), &tys[n_signers..], args);
             vals.extend(self.deserialize_args(file_format_version, &tys[n_signers..], args)?);
             vals
         };
@@ -239,14 +251,17 @@ impl VMRuntime {
         gas_status: &mut GasStatus,
         log_context: &impl LogContext,
     ) -> VMResult<()> {
+        println!("gbx. file: {}, line:{}. ty_args: {:?}, args: {:?}, senders: {:?}", file!(), line!(), ty_args, args, senders);
         // load the script, perform verification
         let (main, ty_args, params) =
             self.loader
                 .load_script(&script, &ty_args, data_store, log_context)?;
 
+        println!("gbx. file: {}, line:{}. main: {:?}, ty_args: {:?}, params: {:?}", file!(), line!(), main, ty_args, params);
         let signers_and_args = self
             .create_signers_and_arguments(main.file_format_version(), &params, senders, args)
             .map_err(|err| err.finish(Location::Undefined))?;
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         // run the script
         let return_vals = Interpreter::entrypoint(
             main,
@@ -258,6 +273,7 @@ impl VMRuntime {
             log_context,
         )?;
 
+        println!("gbx. file: {}, line:{}. return_vals: {:?}", file!(), line!(), return_vals);
         if !return_vals.is_empty() {
             return Err(
                 PartialVMError::new(StatusCode::UNKNOWN_INVARIANT_VIOLATION_ERROR)
@@ -362,6 +378,7 @@ impl VMRuntime {
         gas_status: &mut GasStatus,
         log_context: &impl LogContext,
     ) -> VMResult<()> {
+        println!("gbx. file: {}, line:{}.", file!(), line!());
         let return_vals = self.execute_function_impl(
             module,
             function_name,
@@ -375,6 +392,7 @@ impl VMRuntime {
             log_context,
         )?;
 
+        println!("gbx. file: {}, line:{}. return_vals: {:?}", file!(), line!(), return_vals);
         // A script function that serves as the entry point of execution cannot have return values,
         // this is checked dynamically when the function is loaded. Hence, if the execution ever
         // reaches here, it is an invariant violation

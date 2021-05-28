@@ -389,8 +389,10 @@ impl DB {
 
         let mut db_batch = rocksdb::WriteBatch::default();
         for (cf_name, rows) in &batch.rows {
+            println!("gbx. file: {}, line:{}. cf_name: {:?}", file!(), line!(), cf_name);
             let cf_handle = self.get_cf_handle(cf_name)?;
             for (key, write_op) in rows {
+                println!("gbx. file: {}, line:{}. key: {:?}, write_op: {:?}", file!(), line!(), key, write_op);
                 match write_op {
                     WriteOp::Value(value) => db_batch.put_cf(cf_handle, key, value),
                     WriteOp::Deletion => db_batch.delete_cf(cf_handle, key),

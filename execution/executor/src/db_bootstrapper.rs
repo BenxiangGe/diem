@@ -86,6 +86,7 @@ impl<V: VMExecutor> GenesisCommitter<V> {
     }
 
     pub fn commit(mut self) -> Result<()> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         self.executor
             .commit_blocks(vec![genesis_block_id()], self.ledger_info_with_sigs)?;
         info!("Genesis commited.");

@@ -71,6 +71,7 @@ impl StorageService {
         &self,
         req: &storage_interface::SaveTransactionsRequest,
     ) -> Result<(), Error> {
+        println!("gbx. file: {}, line:{}", file!(), line!());
         Ok(self.db.save_transactions(
             &req.txns_to_commit,
             req.first_version,

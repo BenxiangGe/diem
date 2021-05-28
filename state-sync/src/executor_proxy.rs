@@ -742,6 +742,7 @@ mod tests {
         // Commit block
         let ledger_info_with_sigs =
             gen_ledger_info_with_sigs(block_id.into(), output, block_hash, vec![]);
+        println!("gbx. file: {}, line:{}", file!(), line!());
         let (_, reconfig_events) = block_executor
             .commit_blocks(vec![block_hash], ledger_info_with_sigs.clone())
             .unwrap();
